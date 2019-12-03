@@ -59,7 +59,7 @@ int main()
     {
       led_r = !led_r;
     }
-    wait_us(1000);
+    wait_us(999);
   }
 }
 
