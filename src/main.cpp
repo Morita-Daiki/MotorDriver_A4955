@@ -23,7 +23,7 @@ DigitalOut can_stby(PA_10);     //CAN_EN
 Ticker ticker;
 
 char counter = 0;
-const double VREF_LIMIT = 2.50 / 3.3; //A4955 VREF_LIMIT
+const double VREF_LIMIT = 2.5 / 3.3; //A4955 VREF_LIMIT
 
 void motor_init()
 {
