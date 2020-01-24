@@ -1,5 +1,5 @@
 #include <mbed.h>
-#if defined(DEVICE_CAN) || defined(DOXYGEN_ONLY)
+// #if defined(DEVICE_CAN) || defined(DOXYGEN_ONLY)
 
 DigitalOut led_r(PB_4); //Red
 DigitalOut led_g(PB_5); //Green
@@ -36,25 +36,21 @@ char send_data[SEND_LEN];
 
 int set_id()
 {
-  // double id = 0.0;
-  // const int loop_size = 100;
-  // for (int i = 0; i < loop_size; i++)
-  // {
-  //   id += id_setting * 10.0;
-  // }
-  // return (int)(id / loop_size + 0.5); //四捨五入で0~10をreturn
-  return id_setting * 10.0 + 0.5;
+  double id_sum = 0.0;
+  const int loop_size = 100;
+  for (int i = 0; i < loop_size; i++)
+  {
+    id_sum += id_setting * 10.0;
+  }
+  return (int)(id_sum / loop_size + 0.5); //四捨五入で0~10をreturn
+  return (int)id_setting * 8.4 + 1.1;
 }
 void init()
 {
-  led_r = 1;
-  led_g = 1;
-  led_b = 1;
-  // id = set_id();
-  // id = 3;
-  // led_r = (id >> 0) & 1;
-  // led_g = (id >> 1) & 1;
-  // led_b = (id >> 2) & 1;
+  id = set_id();
+  led_r = (id >> 0) & 1;
+  led_g = (id >> 1) & 1;
+  led_b = (id >> 2) & 1;
 }
 void send()
 {
@@ -72,6 +68,7 @@ int main()
   CANMessage msg;
   while (1)
   {
+    init();
     if (can.read(msg))
     {
       if ((int)msg.id == (id + CURRENT_OFFSET))
@@ -83,6 +80,6 @@ int main()
   }
 }
 
-#else
-#error CAN NOT SUPPORTED
-#endif
+// #else
+// #error CAN NOT SUPPORTED
+// #endif
