@@ -36,13 +36,14 @@ char send_data[SEND_LEN];
 
 int set_id()
 {
-  double id = 0.0;
-  const int loop_size = 100;
-  for (int i = 0; i < loop_size; i++)
-  {
-    id += id_setting * 10.0;
-  }
-  return (int)(id / loop_size + 0.5); //四捨五入で0~10をreturn
+  // double id = 0.0;
+  // const int loop_size = 100;
+  // for (int i = 0; i < loop_size; i++)
+  // {
+  //   id += id_setting * 10.0;
+  // }
+  // return (int)(id / loop_size + 0.5); //四捨五入で0~10をreturn
+  return id_setting * 10.0 + 0.5;
 }
 void init()
 {
@@ -50,13 +51,14 @@ void init()
   led_r = (id >> 0) & 1;
   led_g = (id >> 1) & 1;
   led_b = (id >> 2) & 1;
-  wait(0.5);
+  wait_ms(500);
+  led_r = 1;
 }
 void send()
 {
   if (can.write(CANMessage(id + POSITION_OFFSET, send_data, SEND_LEN)))
   {
-    led_r = !led_r; //blink red
+    // led_r = !led_r; //blink red
   }
 }
 
@@ -72,7 +74,7 @@ int main()
     {
       if ((int)msg.id == (id + CURRENT_OFFSET))
       {
-        led_g = !led_g; //blink red
+        // led_g = !led_g; //blink red
         target_current = (msg.data[1] << 8 | msg.data[0]);
       }
     }
