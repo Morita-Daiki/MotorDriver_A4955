@@ -33,14 +33,7 @@ double target_current = 0.0; //目標電流
 int id; //0~A (10)
 char read_data[READ_LEN];
 char send_data[SEND_LEN];
-void init()
-{
-  id = set_id();
-  led_r = (id >> 0) & 1;
-  led_g = (id >> 1) & 1;
-  led_b = (id >> 2) & 1;
-  wait(10);
-}
+
 int set_id()
 {
   double id = 0.0;
@@ -51,7 +44,14 @@ int set_id()
   }
   return (int)(id / loop_size + 0.5); //四捨五入で0~10をreturn
 }
-
+void init()
+{
+  id = set_id();
+  led_r = (id >> 0) & 1;
+  led_g = (id >> 1) & 1;
+  led_b = (id >> 2) & 1;
+  wait(0.5);
+}
 void send()
 {
   if (can.write(CANMessage(id + POSITION_OFFSET, send_data, SEND_LEN)))
@@ -70,10 +70,10 @@ int main()
   {
     if (can.read(msg))
     {
-      if (msg.id == (id + CURRENT_OFFSET))
+      if ((int)msg.id == (id + CURRENT_OFFSET))
       {
         led_g = !led_g; //blink red
-        target_current = (msg.data[1] << 8 + msg.data[0]);
+        target_current = (msg.data[1] << 8 | msg.data[0]);
       }
     }
   }
