@@ -23,15 +23,23 @@ DigitalOut can_stby(PA_10);     //CAN_EN
 Ticker ticker;
 
 const double VREF_LIMIT = 2.5 / 3.3; //A4955 VREF_LIMIT
-#define SET_INDEX 0x10
-#define SEND_INDEX 0x20
-#define DATA_LEN 8
-int id;
-char read_data[DATA_LEN];
-char send_data[DATA_LEN];
+
+double now_current = 0.0;    //現在でんりゅう
+double target_current = 0.0; //目標電流
+#define CURRENT_OFFSET 0x10  //current setting id offset
+#define POSITION_OFFSET 0x20 //position setting id offset
+#define READ_LEN 1
+#define SEND_LEN 8
+int id; //0~A (10)
+char read_data[READ_LEN];
+char send_data[SEND_LEN];
 void init()
 {
   id = set_id();
+  led_r = (id >> 0) & 1;
+  led_g = (id >> 1) & 1;
+  led_b = (id >> 2) & 1;
+  wait(10);
 }
 int set_id()
 {
@@ -46,23 +54,26 @@ int set_id()
 
 void send()
 {
-  if (can.write(CANMessage(id + SEND_INDEX, send_data, DATA_LEN)))
+  if (can.write(CANMessage(id + POSITION_OFFSET, send_data, SEND_LEN)))
   {
-    led_r = !led_r;
+    led_r = !led_r; //blink red
   }
 }
 
 int main()
 {
   init();
+  ticker.attach(&send, 0.01);
 
   CANMessage msg;
   while (1)
   {
     if (can.read(msg))
     {
-      if (msg.id == id + SET_INDEX)
+      if (msg.id == (id + CURRENT_OFFSET))
       {
+        led_g = !led_g; //blink red
+        target_current = (msg.data[1] << 8 + msg.data[0]);
       }
     }
   }
