@@ -4,8 +4,6 @@
 DigitalOut led_r(PB_4); //Red
 DigitalOut led_g(PB_5); //Green
 DigitalOut led_b(PB_0); //Blue
-DigitalOut led_tx(PA_12);
-DigitalOut led_rx(PA_11);
 
 DigitalOut in1(PA_2);    //CW
 DigitalOut in2(PA_3);    //CCW
@@ -24,44 +22,49 @@ DigitalOut can_stby(PA_10);     //CAN_EN
 
 Ticker ticker;
 
-char counter = 0;
 const double VREF_LIMIT = 2.5 / 3.3; //A4955 VREF_LIMIT
-
-void motor_init()
+#define SET_INDEX 0x10
+#define SEND_INDEX 0x20
+#define DATA_LEN 8
+int id;
+char read_data[DATA_LEN];
+char send_data[DATA_LEN];
+void init()
 {
-  sleepn = 1;    //wake up
-  in1 = in2 = 1; //break
-  led_r = 1;     //state=break
+  id = set_id();
 }
-
-void set_current(double current) //if torqu=0 then break mode
+int set_id()
 {
-  vref = min(abs(current), VREF_LIMIT); //vref=電流*Rsense*10
-  in1 = current >= 0;                   //cw
-  in2 = current <= 0;                   //ccw
+  double id = 0.0;
+  const int loop_size = 100;
+  for (int i = 0; i < loop_size; i++)
+  {
+    id += id_setting * 10.0;
+  }
+  return (int)(id / loop_size + 0.5); //四捨五入で0~10をreturn
 }
 
 void send()
 {
-  if (can.write(CANMessage(1337, &counter, 1)))
+  if (can.write(CANMessage(id + SEND_INDEX, send_data, DATA_LEN)))
   {
-    led_g = !led_g;
+    led_r = !led_r;
   }
 }
 
 int main()
 {
-  ticker.attach(&send, 1);
-  CANMessage msg;
+  init();
 
+  CANMessage msg;
   while (1)
   {
-    printf("%f", sin(19));
     if (can.read(msg))
     {
-      led_r = !led_r;
+      if (msg.id == id + SET_INDEX)
+      {
+      }
     }
-    wait_us(999);
   }
 }
 
