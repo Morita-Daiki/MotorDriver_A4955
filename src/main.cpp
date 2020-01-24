@@ -47,12 +47,14 @@ int set_id()
 }
 void init()
 {
-  id = set_id();
-  led_r = (id >> 0) & 1;
-  led_g = (id >> 1) & 1;
-  led_b = (id >> 2) & 1;
-  wait_ms(500);
   led_r = 1;
+  led_g = 1;
+  led_b = 1;
+  // id = set_id();
+  // id = 3;
+  // led_r = (id >> 0) & 1;
+  // led_g = (id >> 1) & 1;
+  // led_b = (id >> 2) & 1;
 }
 void send()
 {
