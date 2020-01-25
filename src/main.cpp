@@ -1,5 +1,4 @@
 #include <mbed.h>
-// #if defined(DEVICE_CAN) || defined(DOXYGEN_ONLY)
 
 DigitalOut led_r(PB_4); //Red
 DigitalOut led_g(PB_5); //Green
@@ -30,7 +29,8 @@ double target_current = 0.0; //目標電流
 #define POSITION_OFFSET 0x20 //position setting id offset
 #define READ_LEN 1
 #define SEND_LEN 8
-int id; //0~A (10)
+int id; //0~7
+double idsumval = 0.0;
 char read_data[READ_LEN];
 char send_data[SEND_LEN];
 
@@ -39,11 +39,9 @@ int set_id()
   double id_sum = 0.0;
   const int loop_size = 100;
   for (int i = 0; i < loop_size; i++)
-  {
-    id_sum += id_setting * 10.0;
-  }
-  return (int)(id_sum / loop_size + 0.5); //四捨五入で0~10をreturn
-  return (int)id_setting * 8.4 + 1.1;
+    id_sum += id_setting;
+  idsumval = id_sum;
+  return (int)(id_sum / loop_size * 7.9);
 }
 void init()
 {
@@ -79,7 +77,3 @@ int main()
     }
   }
 }
-
-// #else
-// #error CAN NOT SUPPORTED
-// #endif
