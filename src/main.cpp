@@ -4,7 +4,7 @@
 #if defined(DEVICE_CAN) || defined(DOXYGEN_ONLY)
 
 Timer t;
-QEI encoder(PA_8, PA_9, 18, &t, QEI::X4_ENCODING);
+QEI encoder(PA_8, PA_9, 18, &t);
 
 DigitalOut led_r(PB_4); //Red
 DigitalOut led_g(PB_5); //Green

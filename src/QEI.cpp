@@ -166,8 +166,8 @@ void QEI::encode(void)
             angle_pulses -= change;
         }
     }
-    angle_ = angle_pulses * 360 / ((double)pulsesPerRev_ * 4);
-    sumangle = pulses_ * 360 / ((double)pulsesPerRev_ * 4);
+    angle_ = angle_pulses * 360 / ((double)pulsesPerRev_ * encoding_);
+    sumangle = pulses_ * 360 / ((double)pulsesPerRev_ * encoding_);
     if (angle_ >= 360)
     {
         angle_pulses = angle_ = 0;

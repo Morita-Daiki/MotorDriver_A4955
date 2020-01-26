@@ -22,10 +22,8 @@ protected:
 public:
     typedef enum Encoding
     {
-
-        X2_ENCODING,
-        X4_ENCODING
-
+        X2_ENCODING = 2,
+        X4_ENCODING = 4
     } Encoding;
 
     QEI(PinName channelA, PinName channelB, int pulsesPerRev, Timer *T, Encoding encoding = X2_ENCODING);
