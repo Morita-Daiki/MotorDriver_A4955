@@ -1,5 +1,10 @@
 #include <mbed.h>
+#include "QEI.h"
+
 #if defined(DEVICE_CAN) || defined(DOXYGEN_ONLY)
+
+Timer t;
+QEI encoder(PA_8, PA_9, 18, &t, QEI::X4_ENCODING);
 
 DigitalOut led_r(PB_4); //Red
 DigitalOut led_g(PB_5); //Green
@@ -14,10 +19,6 @@ DigitalIn ocln(PA_5);    //目標電流 < 実電流
 AnalogOut vref(PA_4);    //目標電流
 AnalogIn volage(PA_1);   //現在電圧(Vpower*10k/110k)
 AnalogIn aiout(PA_7);    //現在電流
-
-InterruptIn enc_a(PA_8); //エンコーダA
-DigitalIn enc_b(PA_9);
-// InterruptIn enc_b(PA_9); //エンコーダB
 
 AnalogIn id_setting(PA_0);      //setting
 CAN can(PA_11, PA_12, 1000000); //CAN
@@ -58,7 +59,7 @@ void init()
   sleepn = 1;
   in1 = in2 = 1;
 
-  can_stby = 0;
+  can_stby = 0; //can is active
 
   // wait(1.0);
   // led_r = 1;
