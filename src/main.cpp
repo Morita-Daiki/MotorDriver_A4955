@@ -1,20 +1,22 @@
 #include <mbed.h>
+#include "QEI.h"
+
 #if defined(DEVICE_CAN) || defined(DOXYGEN_ONLY)
+
+Timer t;
+QEI encoder(PA_8, PA_9, 18, &t);
 
 DigitalOut led_r(PB_4); //Red
 DigitalOut led_g(PB_5); //Green
 DigitalOut led_b(PB_0); //Blue
 
-DigitalOut in1(PA_2);    //CW
-DigitalOut in2(PA_3);    //CCW
+PwmOut in1(PA_2);
+PwmOut in2(PA_3);
 DigitalOut sleepn(PA_6); //HIGHで駆動可能，LOWで空転
 DigitalIn ocln(PA_5);    //目標電流 < 実電流
 AnalogOut vref(PA_4);    //目標電流
-AnalogIn volage(PA_1);   //現在電圧
+AnalogIn volage(PA_1);   //現在電圧(Vpower*10k/110k)
 AnalogIn aiout(PA_7);    //現在電流
-
-InterruptIn enc_a(PA_8); //エンコーダA
-InterruptIn enc_b(PA_9); //エンコーダB
 
 AnalogIn id_setting(PA_0);      //setting
 CAN can(PA_11, PA_12, 1000000); //CAN
@@ -22,16 +24,40 @@ DigitalOut can_stby(PA_10);     //CAN_EN
 
 Ticker ticker;
 
-char counter = 0;
 const double VREF_LIMIT = 2.5 / 3.3; //A4955 VREF_LIMIT
 
-void motor_init()
-{
-  sleepn = 1;    //wake up
-  in1 = in2 = 1; //break
-  led_r = 1;     //state=break
-}
+double now_current = 0.0;    //現在でんりゅう
+double target_current = 0.0; //目標電流
+#define CURRENT_OFFSET 0x10  //current setting id offset
+#define POSITION_OFFSET 0x20 //position setting id offset
+#define READ_LEN 1
+#define SEND_LEN 8
+int id; //0~7
+double idsumval = 0.0;
+char read_data[READ_LEN];
+char send_data[SEND_LEN];
+long encoder_val = 0;
 
+int set_id()
+{
+  double id_sum = 0.0;
+  const int loop_size = 100;
+  for (int i = 0; i < loop_size; i++)
+    id_sum += id_setting;
+  idsumval = id_sum;
+  return (int)(id_sum / loop_size * 7.9);
+}
+void init()
+{
+  id = set_id();
+  led_r = (id >> 0) & 1;
+  led_g = (id >> 1) & 1;
+  led_b = (id >> 2) & 1;
+  thread_sleep_for(500);
+  sleepn = 1;
+  in1 = in2 = 1;
+  can_stby = 0; //can is active
+}
 void set_current(double current) //if torqu=0 then break mode
 {
   vref = min(abs(current), VREF_LIMIT); //vref=電流*Rsense*10
@@ -41,28 +67,39 @@ void set_current(double current) //if torqu=0 then break mode
 
 void send()
 {
-  if (can.write(CANMessage(1337, &counter, 1)))
+  led_r = !led_r;
+  if (can.write(CANMessage(id + POSITION_OFFSET, send_data, SEND_LEN)))
   {
-    led_g = !led_g;
+    led_g = !led_g; //blink red
   }
 }
 
 int main()
 {
-  ticker.attach(&send, 1);
-  CANMessage msg;
+  init();
+  ticker.attach(&send, 0.1); //can send 1 [data/ms]
 
+  CANMessage msg;
   while (1)
   {
-    printf("%f", sin(19));
+    set_current(0.01);
+    led_b = !led_b;
+    thread_sleep_for(5000);
+    set_current(-0.01);
+    led_b = !led_b;
+    thread_sleep_for(5000);
+    wait(5);
+    // init();
     if (can.read(msg))
     {
-      led_r = !led_r;
+      if ((int)msg.id == (id + CURRENT_OFFSET))
+      {
+        led_g = !led_g; //blink red
+        target_current = (msg.data[1] << 8 | msg.data[0]);
+      }
     }
-    wait_us(999);
   }
 }
-
 #else
 #error CAN NOT SUPPORTED
 #endif
