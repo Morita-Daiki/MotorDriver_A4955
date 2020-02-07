@@ -25,7 +25,7 @@ QEI::QEI(const QEI &q) : channelA_(q.Pin[0]), channelB_(q.Pin[1])
         channelB_.fall(this, &QEI::encode);
     }
 }
-QEI::QEI(PinName channelA, PinName channelB, int pulsesPerRev, Timer *T, Encoding encoding)
+QEI::QEI(PinName channelA, PinName channelB, double pulsesPerRev, Timer *T, Encoding encoding)
     : channelA_(channelA), channelB_(channelB)
 {
     timer = T;

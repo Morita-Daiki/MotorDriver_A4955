@@ -26,7 +26,7 @@ public:
         X4_ENCODING = 4
     } Encoding;
 
-    QEI(PinName channelA, PinName channelB, int pulsesPerRev, Timer *T, Encoding encoding = X2_ENCODING);
+    QEI(PinName channelA, PinName channelB, double pulsesPerRev, Timer *T, Encoding encoding = X2_ENCODING);
 
     void qei_reset(void);
 

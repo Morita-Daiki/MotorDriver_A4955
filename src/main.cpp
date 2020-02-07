@@ -12,8 +12,6 @@ DigitalOut led_b(PB_0); //Blue
 
 PwmOut in1(PA_2);
 PwmOut in2(PA_3);
-// DigitalOut in1(PA_2);    //CW
-// DigitalOut in2(PA_3);    //CCW
 DigitalOut sleepn(PA_6); //HIGHで駆動可能，LOWで空転
 DigitalIn ocln(PA_5);    //目標電流 < 実電流
 AnalogOut vref(PA_4);    //目標電流
@@ -39,6 +37,7 @@ double idsumval = 0.0;
 char read_data[READ_LEN];
 char send_data[SEND_LEN];
 long encoder_val = 0;
+
 int set_id()
 {
   double id_sum = 0.0;
@@ -54,16 +53,10 @@ void init()
   led_r = (id >> 0) & 1;
   led_g = (id >> 1) & 1;
   led_b = (id >> 2) & 1;
-  wait(0.5);
-
+  thread_sleep_for(500);
   sleepn = 1;
   in1 = in2 = 1;
-
   can_stby = 0; //can is active
-
-  // wait(1.0);
-  // led_r = 1;
-  // wait(1.0);
 }
 void set_current(double current) //if torqu=0 then break mode
 {
@@ -80,19 +73,10 @@ void send()
     led_g = !led_g; //blink red
   }
 }
-void encoder_rise()
-{
-  encoder_val += !enc_b - enc_b;
-}
-void encoder_fall()
-{
-  encoder_val += enc_b - !enc_b;
-}
+
 int main()
 {
   init();
-  enc_a.rise(&encoder_rise);
-  enc_a.fall(&encoder_fall);
   ticker.attach(&send, 0.1); //can send 1 [data/ms]
 
   CANMessage msg;
@@ -100,9 +84,10 @@ int main()
   {
     set_current(0.01);
     led_b = !led_b;
-    wait(5);
+    thread_sleep_for(5000);
     set_current(-0.01);
     led_b = !led_b;
+    thread_sleep_for(5000);
     wait(5);
     // init();
     if (can.read(msg))
